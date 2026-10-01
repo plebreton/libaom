@@ -926,6 +926,7 @@ static aom_image_t *decoder_get_frame(aom_codec_alg_priv_t *ctx,
              "Grain synthesis failed\n");
     return res;
   }
+  res->vp_frame_key = output_frame_buf;  // videoparser
   *index += 1;  // Advance the iterator to point to the next image
   return res;
 }

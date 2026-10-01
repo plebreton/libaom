@@ -1185,6 +1185,11 @@ static inline void parse_decode_block(AV1Decoder *const pbi,
 #endif
   DecoderCodingBlock *const dcb = &td->dcb;
   MACROBLOCKD *const xd = &dcb->xd;
+#if CONFIG_INSPECTION
+  // videoparser: motion and coefficient bits of this block
+  const uint64_t vp_motion_start = pbi->motion_bits;
+  const uint64_t vp_coeff_start = td->coef_bits;
+#endif
   decode_mbmi_block(pbi, dcb, mi_row, mi_col, r, partition, bsize);
 
   av1_visit_palette(pbi, xd, r, av1_decode_palette_tokens);
@@ -1235,6 +1240,18 @@ static inline void parse_decode_block(AV1Decoder *const pbi,
   if (mbmi->skip_txfm) av1_reset_entropy_context(xd, bsize, num_planes);
 
   decode_token_recon_block(pbi, td, r, bsize);
+
+#if CONFIG_INSPECTION
+  {
+    const uint32_t vp_end = aom_reader_tell_frac(r);
+    mbmi->vp_total_bits = vp_end - td->vp_bits_mark;
+    mbmi->vp_motion_bits = (uint32_t)(pbi->motion_bits - vp_motion_start);
+    mbmi->vp_coeff_bits = (uint32_t)(td->coef_bits - vp_coeff_start);
+    mbmi->vp_mi_row = mi_row;
+    mbmi->vp_mi_col = mi_col;
+    td->vp_bits_mark = vp_end;
+  }
+#endif
 #if CONFIG_COLLECT_COMPONENT_TIMING
   end_timing(pbi, parse_decode_block_time);
 #endif
@@ -2965,6 +2982,9 @@ static const uint8_t *decode_tiles(AV1Decoder *pbi, const uint8_t *data,
       setup_bool_decoder(&td->dcb.xd, tile_bs_buf->data, data_end,
                          tile_bs_buf->size, &pbi->error, td->bit_reader,
                          allow_update_cdf);
+#if CONFIG_INSPECTION
+      td->vp_bits_mark = aom_reader_tell_frac(td->bit_reader);  // videoparser
+#endif
 #if CONFIG_ACCOUNTING
       if (pbi->acct_enabled) {
         td->bit_reader->accounting = &pbi->accounting;
@@ -3041,6 +3061,9 @@ static inline void tile_worker_hook_init(AV1Decoder *const pbi,
   setup_bool_decoder(xd, tile_buffer->data, thread_data->data_end,
                      tile_buffer->size, &thread_data->error_info,
                      td->bit_reader, allow_update_cdf);
+#if CONFIG_INSPECTION
+  td->vp_bits_mark = aom_reader_tell_frac(td->bit_reader);  // videoparser
+#endif
 #if CONFIG_ACCOUNTING
   if (pbi->acct_enabled) {
     td->bit_reader->accounting = &pbi->accounting;

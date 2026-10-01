@@ -132,6 +132,9 @@ typedef struct ThreadData {
 #if CONFIG_INSPECTION
   // videoparser: Bit count accumulator for coefficient decoding
   uint64_t coef_bits;
+  // videoparser: aom_reader_tell_frac() at the end of the last block of the
+  // tile, for the per-block bits export
+  uint32_t vp_bits_mark;
 #endif
 } ThreadData;
 

@@ -245,6 +245,15 @@ typedef struct MB_MODE_INFO {
 #if CONFIG_INSPECTION
   // videoparser: Store motion vector difference (coded delta) for extraction
   int_mv mvd[2];
+  // videoparser: bits of the block for the per-block bits export, in 1/8 bits:
+  // all bits since the end of the previous block of the tile (including the
+  // partition), the motion vector bits and the coefficient bits
+  uint32_t vp_total_bits;
+  uint32_t vp_motion_bits;
+  uint32_t vp_coeff_bits;
+  // videoparser: position of the block, in 4x4 units
+  int vp_mi_row;
+  int vp_mi_col;
 #endif
   /*! \brief The reference frames for the MV */
   MV_REFERENCE_FRAME ref_frame[2];

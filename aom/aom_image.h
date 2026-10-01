@@ -311,6 +311,10 @@ typedef struct aom_image {
       *metadata; /**< Metadata payloads associated with the image. */
 
   void *fb_priv; /**< Frame buffer data associated with the image. */
+
+  /** videoparser: decoder frame buffer of the image, the same as
+   *  vp_frame_key in the inspection data of the frame */
+  const void *vp_frame_key;
 } aom_image_t;   /**< alias for struct aom_image */
 
 /*!\brief Open a descriptor, allocating storage for the underlying image
