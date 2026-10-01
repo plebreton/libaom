@@ -49,7 +49,8 @@ int ifd_inspect(insp_frame_data *fd, void *decoder, int skip_not_transform) {
 
   if (fd->mi_rows != mi_params->mi_rows || fd->mi_cols != mi_params->mi_cols) {
     ifd_clear(fd);
-    ifd_init_mi_rc(fd, mi_params->mi_rows, mi_params->mi_cols);
+    // videoparser: the arguments are in the order of ifd_init_mi_rc()
+    ifd_init_mi_rc(fd, mi_params->mi_cols, mi_params->mi_rows);
   }
   fd->show_existing_frame = cm->show_existing_frame;
   fd->frame_number = cm->current_frame.frame_number;
@@ -161,10 +162,19 @@ int ifd_inspect(insp_frame_data *fd, void *decoder, int skip_not_transform) {
       }
       // delta_q
       mi->current_qindex = mbmi->current_qindex;
+      // videoparser
+      mi->vp_qindex = (int16_t)av1_get_qindex(&cm->seg, mbmi->segment_id,
+                                              mbmi->current_qindex);
+      mi->vp_total_bits = mbmi->vp_total_bits;
+      mi->vp_motion_bits = mbmi->vp_motion_bits;
+      mi->vp_coeff_bits = mbmi->vp_coeff_bits;
+      mi->vp_mi_row = mbmi->vp_mi_row;
+      mi->vp_mi_col = mbmi->vp_mi_col;
     }
   }
   // videoparser: Copy bit counts (stored in 1/8th bits, convert to bits)
   fd->motion_bits = pbi->motion_bits / 8;
   fd->coef_bits = pbi->td.coef_bits / 8;
+  fd->vp_frame_key = cm->cur_frame;
   return 1;
 }

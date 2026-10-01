@@ -57,6 +57,15 @@ struct insp_mi_data {
   int16_t intrabc;
   int16_t palette;
   int16_t uv_palette;
+  // videoparser: QP index with the segment feature applied
+  int16_t vp_qindex;
+  // videoparser: bits of the block this 4x4 unit belongs to (in 1/8 bits),
+  // and the position of the block (in 4x4 units)
+  uint32_t vp_total_bits;
+  uint32_t vp_motion_bits;
+  uint32_t vp_coeff_bits;
+  int vp_mi_row;
+  int vp_mi_col;
 };
 
 typedef struct insp_frame_data insp_frame_data;
@@ -84,6 +93,10 @@ struct insp_frame_data {
   // videoparser: Bit counts for motion and coefficient decoding
   uint64_t motion_bits;
   uint64_t coef_bits;
+  // videoparser: decoder frame buffer of the decoded frame, to find the
+  // frame again when it is output (aom_image_t.vp_frame_key), also with
+  // show_existing_frame
+  const void *vp_frame_key;
 };
 
 void ifd_init(insp_frame_data *fd, int frame_width, int frame_height);
